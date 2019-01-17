@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+.slider{
+	width:780px;
+	overflow:hidden;
+}
+#slider{
+	display:flex;
+	margin:0;
+	padding:0;
+	width:1040px;
+}
+#slider li{list-style:none;}
+</style>
+<body>
+
+<div class="slider">
+	<ul id="slider">
+	</ul>
+</div>
+<div id="output"></div>
+<button id="prev">Prev</button>
+<button id="next">Next</button>
+<script>
+	
+	var gallery = (function(){
+		var data = [1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10];
+		var totalLength = 10;
+		var startFrom = 0;
+		var listWidth = 260;
+		var defaultSlidePosition = -780;
+		var animationTime = 200;
+		var slidePosition = defaultSlidePosition;
+		var endData = 0;
+		var liWidth = 0;
+		var currentData = [];
+		var replaceDataNumber = 3;
+		var checkMoveData = 0;
+		var output = document.getElementById('output');
+		var slider = document.getElementById('slider');
+		var isSlide = true;
+		
+		var init = function(){
+			endData = totalLength;
+			getCurrentData(startFrom,endData);
+			createSlider(currentData);
+			slider.style.WebkitTransform = "translate3d(" + defaultSlidePosition + "px,0px,0)";
+		}
+		
+		var getCurrentData = function(_start, _endData){
+			currentData = [];
+			for(var i = _start; i < _endData;i++){
+				
+				if(data[i] == undefined){					
+					currentData.push(data[i - data.length]);					
+				}else{
+					currentData.push(data[i]);
+				}				
+			}
+			output.innerHTML = currentData;
+			//createSlider(currentData);
+		}
+		
+		var createSlider = function(data){
+			var slideHTML = '';
+			for(var i = 0; i < data.length;i++){
+				slideHTML += '<li><img src="images/poster'+data[i]+'.jpg" /></li>';
+			}
+			slider.innerHTML = slideHTML;
+		}
+		
+		var nextData = function(){
+			if(isSlide){
+			isSlide = false;
+			if(startFrom == data.length){
+				startFrom = 0;
+			}
+			startFrom++;			
+			endData = startFrom+totalLength;			
+			getCurrentData(startFrom,endData);			
+			//createSlider(currentData);
+			slidePosition = slidePosition - listWidth;
+			slider.style.WebkitTransform = "translate3d(" + slidePosition + "px,0px,0)";
+			slider.style.transition = "all "+animationTime+"ms linear";
+			
+			
+			
+			
+			var transitionEvent = whichTransitionEvent();				
+			slider.addEventListener(transitionEvent, transitionEndCallback);
+			function transitionEndCallback(event) {
+			slider.removeEventListener(transitionEvent, transitionEndCallback);
+				isSlide = true;
+				checkMoveData++;
+				if(checkMoveData >= replaceDataNumber){
+					createSlider(currentData);
+					checkMoveData = 0;
+					slidePosition = defaultSlidePosition;
+					slider.style.transition = "all 0ms linear";
+					slider.style.WebkitTransform = "translate3d(" + defaultSlidePosition + "px,0px,0)";
+				}
+			}	
+			}			
+		}			
+		
+		var prevData = function(){
+		if(isSlide){
+			isSlide = false;
+		
+			if(startFrom == 0){
+				startFrom = data.length
+			}
+			startFrom--;			
+			endData = startFrom+totalLength; 
+			getCurrentData(startFrom,endData);
+			
+			slidePosition = slidePosition + listWidth;
+			slider.style.WebkitTransform = "translate3d(" + slidePosition + "px,0px,0)";
+			slider.style.transition = "all "+animationTime+"ms linear";
+			
+			var transitionEvent = whichTransitionEvent();				
+			slider.addEventListener(transitionEvent, transitionEndCallback);
+			function transitionEndCallback(event) {
+			slider.removeEventListener(transitionEvent, transitionEndCallback);
+				isSlide = true;
+				checkMoveData++;
+				if(checkMoveData >= replaceDataNumber){
+					createSlider(currentData);
+					checkMoveData = 0;
+					slidePosition = defaultSlidePosition;
+					slider.style.transition = "all 0ms linear";
+					slider.style.WebkitTransform = "translate3d(" + defaultSlidePosition + "px,0px,0)";
+				}
+			}		
+		}
+			
+		}
+		
+		
+		/* transition events */				
+		var whichTransitionEvent = function(){
+			var t,
+				el = document.createElement("fakeelement");
+			var transitions = {
+				"transition"      : "transitionend",
+				"OTransition"     : "oTransitionEnd",
+				"MozTransition"   : "transitionend",
+				"WebkitTransition": "webkitTransitionEnd"
+			}
+			for (t in transitions){
+				if (el.style[t] !== undefined){
+					return transitions[t];
+				}
+			}
+		}
+		
+		var keyPress = function(event){
+			var key = event.which || event.keyCode; 
+			switch(key){
+			case 37:
+				prevData();			
+			return;
+			
+			case 39:
+				nextData();
+			return;			
+			default:
+			return;
+			}
+		}
+		
+		return{
+			init:init,
+			nextData:nextData,
+			prevData:prevData,
+			keyPress:keyPress
+		}
+	})
+	
+	newGallery = new gallery();
+	newGallery.init();
+	var nextButton = document.getElementById('next');
+	var prevButton = document.getElementById('prev');
+	nextButton.addEventListener("click", function(){newGallery.nextData()});
+	prevButton.addEventListener("click", function(){newGallery.prevData()});
+	
+	document.onkeydown = keyevent;
+	
+	function keyevent(event){
+		newGallery.keyPress(event);
+	}
+</script>
+
+</body>
+</html>
+
+
